@@ -1,0 +1,52 @@
+version: '3.9'
+
+
+services:
+
+  one_win_bot:
+    container_name: one_win_bot
+    build: bot
+    restart: on-failure
+    env_file:
+      - bot/.env
+    depends_on:
+      - redis
+      - postgres
+    ports:
+      - "3001:3001"
+
+  user_bot:
+    container_name: user_bot
+    build: bot_in_user
+    restart: on-failure
+    stdin_open: true
+    tty: true
+    env_file:
+      - bot_in_user/.env
+    depends_on:
+      - postgres
+
+  postgres:
+    hostname: postgres
+    container_name: postgres
+    image: postgres:16.2
+    restart: on-failure
+    environment:
+      POSTGRES_DB: "one_win"
+      POSTGRES_USER: "host"
+      POSTGRES_PASSWORD: "admin"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./services/postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    hostname: redis
+    container_name: redis
+    image: redis:7.2
+    restart: on-failure
+    volumes:
+      - ./services/redis_data:/data
+    ports:
+      - "6379:6379"
